@@ -1,10 +1,18 @@
+let taskData = {};
+
 const todo = document.querySelector("#todo")
 const progress = document.querySelector("#progress")
 const done = document.querySelector("#done")
 const tasks = document.querySelectorAll('.task')
 
-
-// console.log(todo, progress, done);
+if(localStorage.getItem("tasks")) {
+    const data = JSON.parse(localStorage.getItem("tasks"))
+    
+    for (const col in data) {
+        console.log(col, data[col]);
+    }
+    
+}
 
 let draggedItem = null;
 
@@ -14,6 +22,17 @@ tasks.forEach((task) => {
         draggedItem = task;
     })
 })
+
+const columns = [todo, progress, done];
+
+function taskCount(){
+    columns.forEach(col => {
+        const tasks = col.querySelectorAll(".task");
+        const count = col.querySelector(".right");
+
+        count.innerText = tasks.length;
+    })
+}
 
 
 function addDragEventOncolumn(cols){
@@ -37,6 +56,8 @@ function addDragEventOncolumn(cols){
         // console.log(draggedItem);
         cols.appendChild(draggedItem)
         cols.classList.remove("hover-over")
+
+        taskCount()
     })
     
 }
@@ -61,8 +82,7 @@ modalBg.addEventListener("click", () => {
     modal.classList.remove("active")
 })
 
-
-addNewTask.addEventListener("click", () => {
+function addTask() {
     const taskTitle = document.querySelector("#task-title").value
     const taskDesc = document.querySelector("#task-desc").value
 
@@ -79,9 +99,32 @@ addNewTask.addEventListener("click", () => {
 
     todo.appendChild(div)
 
+    columns.forEach(col => {
+        const tasks = col.querySelectorAll(".task");
+        const count = col.querySelector(".right")
+
+        taskData[col.id] = Array.from(tasks).map(t => {
+           return {
+            title : t.querySelector("h2").innerText,
+            desc : t.querySelector("p").innerText
+           }
+        })
+
+        localStorage.setItem("tasks", JSON.stringify(taskData))
+        count.innerText = tasks.length;
+    })
+
     div.addEventListener("drag", (e) => {
         draggedItem = div;
     })
 
     modal.classList.remove("active")
+}
+
+addNewTask.addEventListener("click", () => {addTask()})
+document.addEventListener("keydown",(e) => {
+    if(modal.classList.contains("active")){
+        e.key === "Enter" ? addTask() : '';
+    }
 })
+
